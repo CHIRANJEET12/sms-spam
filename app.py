@@ -2,22 +2,17 @@ import streamlit as st
 import pickle
 import string
 import nltk
-import os
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
-# Download required NLTK data with error handling
 @st.cache_resource
 def download_nltk_data():
     try:
-        # Try to find the new punkt_tab tokenizer first
         nltk.data.find('tokenizers/punkt_tab')
     except LookupError:
         try:
-            # If punkt_tab not found, download it
             nltk.download('punkt_tab')
         except:
-            # Fallback to traditional punkt if punkt_tab fails
             try:
                 nltk.data.find('tokenizers/punkt')
             except LookupError:
@@ -28,26 +23,20 @@ def download_nltk_data():
     except LookupError:
         nltk.download('stopwords')
 
-# Download NLTK data when app starts
 download_nltk_data()
 
-# Initialize stemmer
 ps = PorterStemmer()
 
 def transform_text(text):
     text = text.lower()
     
-    # Try both tokenizers with fallback
     try:
-        # First try the new punkt_tab tokenizer
         text = nltk.word_tokenize(text)
     except LookupError:
         try:
-            # Fallback to traditional punkt
             nltk.data.find('tokenizers/punkt')
             text = nltk.word_tokenize(text)
         except LookupError:
-            # Final fallback - simple split if NLTK tokenizers fail
             text = text.split()
 
     y = []
@@ -70,7 +59,6 @@ def transform_text(text):
 
     return " ".join(y)
 
-# Load models
 try:
     tfidf = pickle.load(open('vectorizer.pkl','rb'))
     model1 = pickle.load(open('model2.pkl','rb'))
