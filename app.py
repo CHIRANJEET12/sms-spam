@@ -4,54 +4,47 @@ import string
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+
 ps = PorterStemmer()
 
 nltk.download('punkt', quiet=True)
 nltk.download('stopwords', quiet=True)
 
+stop_words = set(stopwords.words('english'))
+
 def text_transfor(text):
     text = text.lower()
-    text = nltk.word_tokenize(text)
-    y=[]
-    for i in text:
-        if i.isalnum():
-            y.append(i)
+    tokens = nltk.word_tokenize(text)
+    tokens = [word for word in tokens if word.isalnum()]
+    tokens = [word for word in tokens if word not in stop_words]
+    tokens = [ps.stem(word) for word in tokens]
 
-    text = y[:]
-    y.clear()
+    return tokens
 
-    for i in text:
-        if i not in stopwords.words('english') and i not in string.punctuation:
-            y.append(i)
+@st.cache_resource
+def load_model():
+    tf = pickle.load(open('vectorizer.pkl', 'rb'))
+    model = pickle.load(open('model.pkl', 'rb'))
+    return tf, model
 
-    text = y[:]
-    y.clear()
+tf, model = load_model()
 
-    for i in text:
-        y.append(ps.stem(i))
-        
-    text = y[:]
-    y.clear()
-    
-    return text
+st.title("Email/SMS Spam Classifier")
 
+input_msg = st.text_input("Enter your message:")
 
-tf = pickle.load(open('vectorizer.pkl','rb'))
-model = pickle.load(open('model.pkl','rb'))
+if input_msg:
+    # Preprocess
+    transfor_msg = " ".join(text_transfor(input_msg))
 
-st.title("Email/SMS-Spam Classifier")
+    # Vectorize
+    vector_input = tf.transform([transfor_msg])
 
+    # Predict
+    result = model.predict(vector_input)[0]
 
-input_msg = st.text_input("Enter the msg")
-
-# preprocess
-transfor_msg = " ".join(text_transfor(input_msg))
-# vectorize
-vector_input = tf.transform([transfor_msg])
-# predict
-result = model.predict(vector_input)[0]
-# display
-if result == 1:
-    st.header("Spam")
-else:
-    st.header("Not Spam")
+    # Display result
+    if result == 1:
+        st.header("Spam 🚫")
+    else:
+        st.header("Not Spam ✅")
