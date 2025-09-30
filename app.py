@@ -4,47 +4,55 @@ import string
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-
 ps = PorterStemmer()
+nltk.data.path.append("nltk_data") 
 
 nltk.download('punkt', quiet=True)
 nltk.download('stopwords', quiet=True)
 
-stop_words = set(stopwords.words('english'))
-
 def text_transfor(text):
     text = text.lower()
-    tokens = nltk.word_tokenize(text)
-    tokens = [word for word in tokens if word.isalnum()]
-    tokens = [word for word in tokens if word not in stop_words]
-    tokens = [ps.stem(word) for word in tokens]
+    text = nltk.word_tokenize(text)
+    y=[]
+    for i in text:
+        if i.isalnum():
+            y.append(i)
 
-    return tokens
+    text = y[:]
+    y.clear()
 
-@st.cache_resource
-def load_model():
-    tf = pickle.load(open('vectorizer.pkl', 'rb'))
-    model = pickle.load(open('model.pkl', 'rb'))
-    return tf, model
+    for i in text:
+        if i not in stopwords.words('english') and i not in string.punctuation:
+            y.append(i)
 
-tf, model = load_model()
+    text = y[:]
+    y.clear()
 
-st.title("Email/SMS Spam Classifier")
+    for i in text:
+        y.append(ps.stem(i))
+        
+    text = y[:]
+    y.clear()
+    
+    return text
 
-input_msg = st.text_input("Enter your message:")
 
-if input_msg:
-    # Preprocess
-    transfor_msg = " ".join(text_transfor(input_msg))
+tf = pickle.load(open('vectorizer.pkl','rb'))
+model = pickle.load(open('model.pkl','rb'))
 
-    # Vectorize
-    vector_input = tf.transform([transfor_msg])
+st.title("Email/SMS-Spam Classifier")
 
-    # Predict
-    result = model.predict(vector_input)[0]
 
-    # Display result
-    if result == 1:
-        st.header("Spam 🚫")
-    else:
-        st.header("Not Spam ✅")
+input_msg = st.text_input("Enter the msg")
+
+# preprocess
+transfor_msg = " ".join(text_transfor(input_msg))
+# vectorize
+vector_input = tf.transform([transfor_msg])
+# predict
+result = model.predict(vector_input)[0]
+# display
+if result == 1:
+    st.header("Spam")
+else:
+    st.header("Not Spam")
