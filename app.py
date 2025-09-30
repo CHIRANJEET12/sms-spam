@@ -10,9 +10,18 @@ from nltk.stem.porter import PorterStemmer
 @st.cache_resource
 def download_nltk_data():
     try:
-        nltk.data.find('tokenizers/punkt')
+        # Try to find the new punkt_tab tokenizer first
+        nltk.data.find('tokenizers/punkt_tab')
     except LookupError:
-        nltk.download('punkt')
+        try:
+            # If punkt_tab not found, download it
+            nltk.download('punkt_tab')
+        except:
+            # Fallback to traditional punkt if punkt_tab fails
+            try:
+                nltk.data.find('tokenizers/punkt')
+            except LookupError:
+                nltk.download('punkt')
     
     try:
         nltk.data.find('corpora/stopwords')
@@ -27,7 +36,19 @@ ps = PorterStemmer()
 
 def transform_text(text):
     text = text.lower()
-    text = nltk.word_tokenize(text)
+    
+    # Try both tokenizers with fallback
+    try:
+        # First try the new punkt_tab tokenizer
+        text = nltk.word_tokenize(text)
+    except LookupError:
+        try:
+            # Fallback to traditional punkt
+            nltk.data.find('tokenizers/punkt')
+            text = nltk.word_tokenize(text)
+        except LookupError:
+            # Final fallback - simple split if NLTK tokenizers fail
+            text = text.split()
 
     y = []
     for i in text:
@@ -79,5 +100,10 @@ if st.button('Predict'):
             else:
                 st.header("Not Spam")
                 st.success("This message appears to be legitimate!")
+                
+            # Show processed text for debugging
+            with st.expander("Show processed text"):
+                st.write(transformed_sms)
+                
         except Exception as e:
             st.error(f"An error occurred during prediction: {str(e)}")
