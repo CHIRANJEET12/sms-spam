@@ -73,7 +73,7 @@ def transform_text(text):
 # Load models
 try:
     tfidf = pickle.load(open('vectorizer.pkl','rb'))
-    model1 = pickle.load(open('model1.pkl','rb'))
+    model1 = pickle.load(open('model2.pkl','rb'))
 except FileNotFoundError:
     st.error("Model files (vectorizer.pkl or model.pkl) not found. Please make sure they are in the same directory.")
     st.stop()
