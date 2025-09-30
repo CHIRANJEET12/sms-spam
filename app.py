@@ -6,16 +6,21 @@ import os
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
-# Download required NLTK data if not present
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+# Download required NLTK data with error handling
+@st.cache_resource
+def download_nltk_data():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+    
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        nltk.download('stopwords')
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+# Download NLTK data when app starts
+download_nltk_data()
 
 # Initialize stemmer
 ps = PorterStemmer()
@@ -70,7 +75,9 @@ if st.button('Predict'):
             # 4. Display
             if result == 1:
                 st.header("Spam")
+                st.error("This message appears to be spam!")
             else:
                 st.header("Not Spam")
+                st.success("This message appears to be legitimate!")
         except Exception as e:
             st.error(f"An error occurred during prediction: {str(e)}")
