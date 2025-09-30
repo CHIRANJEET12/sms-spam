@@ -73,7 +73,7 @@ def transform_text(text):
 # Load models
 try:
     tfidf = pickle.load(open('vectorizer.pkl','rb'))
-    model = pickle.load(open('model1.pkl','rb'))
+    model1 = pickle.load(open('model1.pkl','rb'))
 except FileNotFoundError:
     st.error("Model files (vectorizer.pkl or model.pkl) not found. Please make sure they are in the same directory.")
     st.stop()
@@ -92,7 +92,7 @@ if st.button('Predict'):
             # 2. vectorize
             vector_input = tfidf.transform([transformed_sms])
             # 3. predict
-            result = model.predict(vector_input)[0]
+            result = model1.predict(vector_input)[0]
             # 4. Display
             if result == 1:
                 st.header("Spam")
